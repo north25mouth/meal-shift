@@ -4,7 +4,6 @@ const app = {
     dinnerData: {},
     currentWeekStart: null,
     syncKey: null,
-    firebase: null,
     database: null,
     syncRef: null,
     
@@ -40,11 +39,15 @@ const app = {
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
         
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
+        tabButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
                 // アクティブなタブをリセット
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
+                tabButtons.forEach(function(btn) {
+                    btn.classList.remove('active');
+                });
+                tabContents.forEach(function(content) {
+                    content.classList.remove('active');
+                });
                 
                 // クリックされたタブをアクティブに
                 button.classList.add('active');
@@ -84,21 +87,8 @@ const app = {
     
     // Firebase の初期化
     initFirebase: function() {
-        // Firebase の設定
-        const firebaseConfig = {
-            apiKey: "AIzaSyAZVrNpZZ0tcKdCk6ICTyysK2v2T9_gOY4",
-            authDomain: "mealshift-32f84.firebaseapp.com",
-            databaseURL: "https://mealshift-32f84-default-rtdb.firebaseio.com",
-            projectId: "mealshift-32f84",
-            storageBucket: "mealshift-32f84.firebasestorage.app",
-            messagingSenderId: "378628974920",
-            appId: "1:378628974920:web:f2872d86eaff8d1a2c2b7d",
-            measurementId: "G-31RL7V07PC"
-        };
-        
         // Firebase の初期化
-        this.firebase = firebase.initializeApp(firebaseConfig);
-        this.database = this.firebase.database();
+        this.database = firebase.database();
         
         // 同期キーが設定されている場合は、データ同期を開始
         if (this.syncKey) {
@@ -117,7 +107,7 @@ const app = {
         this.syncRef = this.database.ref('dinnerData/' + safeKey);
         
         // データ変更時のリスナーを設定
-        this.syncRef.on('value', (snapshot) => {
+        this.syncRef.on('value', (function(snapshot) {
             const data = snapshot.val();
             if (data) {
                 // Firebaseからのデータで上書き
@@ -134,7 +124,7 @@ const app = {
                 // 同期ステータスを更新
                 document.getElementById('sync-status').textContent = '同期状態: 同期完了 (' + new Date().toLocaleTimeString() + ')';
             }
-        });
+        }).bind(this));
         
         // 初回データをアップロード
         this.uploadData();
@@ -175,144 +165,6 @@ const app = {
         // 以前の同期を停止
         if (this.syncRef) {
             this.syncRef.off();
-        }
-        
-        this.syncKey = key.trim();
-        this.saveLocalData();
-        this.updateSyncKeyInfo();
-        
-        // 新しい同期を開始
-        this.startSync();
-    },
-    
-    // 現在の週の開始日（日曜日）を設定 (前回と同じ)
-    setCurrentWeek: function(date = new Date()) {
-        // ... (前回と同じ)
-    },
-    
-    // メンバーリストを更新 (前回と同じ)
-    updateMembersList: function() {
-        // ... (前回と同じ)
-    },
-    
-    // 予定表を更新 (前回と同じ)
-    updateDinnerTable: function() {
-        // ... (前回と同じ)
-    },
-    
-    // 日付をフォーマット (YYYY-MM-DD) (前回と同じ)
-    formatDate: function(date) {
-        // ... (前回と同じ)
-    },
-    
-    // メンバーを追加
-    addMember: function() {
-        const newMemberInput = document.getElementById('new-member');
-        const name = newMemberInput.value.trim();
-        
-        if (!name) {
-            alert('名前を入力してください');
-            return;
-        }
-        
-        // 同じ名前のメンバーがいないかチェック
-        const exists = this.members.some(member => member.name === name);
-        if (exists) {
-            alert('その名前のメンバーは既に登録されています');
-            return;
-        }
-        
-        const newMember = {
-            id: Date.now().toString(),
-            name
-        };
-        
-        this.members.push(newMember);
-        this.saveLocalData();
-        this.updateMembersList();
-        this.updateDinnerTable();
-        
-        // データを同期
-        if (this.syncRef) {
-            this.uploadData();
-        }
-        
-        // 入力をクリア
-        newMemberInput.value = '';
-    },
-    
-    // メンバーを削除
-    deleteMember: function(memberId) {
-        const confirmed = confirm('このメンバーを削除しますか？関連するすべての予定も削除されます。');
-        if (!confirmed) return;
-        
-        // メンバーを削除
-        this.members = this.members.filter(member => member.id !== memberId);
-        
-        // メンバーに関連する夕飯データも削除
-        const newDinnerData = {};
-        for (const key in this.dinnerData) {
-            if (!key.startsWith(memberId + '_')) {
-                newDinnerData[key] = this.dinnerData[key];
-            }
-        }
-        
-        this.dinnerData = newDinnerData;
-        this.saveLocalData();
-        this.updateMembersList();
-        this.updateDinnerTable();
-        
-        // データを同期
-        if (this.syncRef) {
-            this.uploadData();
-        }
-    },
-    
-    // 前の週に移動 (前回と同じ)
-    prevWeek: function() {
-        // ... (前回と同じ)
-    },
-    
-    // 次の週に移動 (前回と同じ)
-    nextWeek: function() {
-        // ... (前回と同じ)
-    },
-    
-    // イベントリスナーのセットアップ (前回と同じ)
-    setupEventListeners: function() {
-        // ... (前回と同じ)
-    }
-};
-
-// アプリケーションを初期化
-document.addEventListener('DOMContentLoaded', () => {
-    app.init();
-});
-    
-    // 同期キー情報を更新
-    updateSyncKeyInfo: function() {
-        const display = document.getElementById('sync-key-display');
-        const status = document.getElementById('sync-status');
-        
-        if (this.syncKey) {
-            display.textContent = this.syncKey;
-            status.textContent = '同期状態: 設定完了';
-        } else {
-            display.textContent = '未設定';
-            status.textContent = '同期状態: 未設定';
-        }
-    },
-    
-    // 同期キーを設定
-    setSyncKey: function(key) {
-        if (!key.trim()) {
-            alert('合言葉を入力してください');
-            return;
-        }
-        
-        // 以前の同期を停止
-        if (this.syncRef) {
-            // onValueのリスナーを解除する
         }
         
         this.syncKey = key.trim();
