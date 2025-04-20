@@ -401,123 +401,91 @@ label {
     }
 }
 
-/* スマートフォン向けのレスポンシブデザイン調整 */
 @media (max-width: 600px) {
-    .container {
-        width: 100%;
-        margin: 0;
-        border-radius: 0;
-        box-shadow: none;
-    }
-
-    body {
-        padding: 5px;
-        background-image: none;
-        background-color: #f7f9fc;
-    }
-
-    header {
-        padding: 10px;
-    }
-
-    h1 {
-        font-size: 18px;
-    }
-
-    header p {
-        font-size: 14px;
-    }
-
-    .content {
-        padding: 10px;
-    }
-
-    .section {
-        padding: 10px;
-        margin-bottom: 10px;
-    }
-
+    /* テーブルのレイアウトを最適化 */
     table {
-        font-size: 12px;
+        width: 100%;
+        table-layout: fixed;
+        font-size: 11px; /* さらに小さいフォントサイズ */
     }
 
-    th, td {
-        padding: 6px 3px;
+    /* 名前列の幅を調整 */
+    table tr td:first-child {
+        width: 50px; /* 名前列の幅を固定 */
+        min-width: 50px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .status-cell {
-        height: 40px;
+    /* 日付ヘッダーの表示を最適化 */
+    th {
+        padding: 5px 2px;
+        font-size: 10px;
     }
 
+    td {
+        padding: 5px 2px;
+    }
+
+    /* 今日の日付マーカーを調整 */
+    .today::after {
+        font-size: 8px;
+        padding: 1px 3px;
+        top: 1px;
+        right: 1px;
+    }
+
+    /* ステータスアイコンのサイズ調整 */
     .status-icon {
-        font-size: 18px;
+        font-size: 16px;
     }
 
+    /* セルの高さを調整 */
+    .status-cell {
+        height: 35px;
+    }
+
+    /* コントロールボタンのレイアウト */
+    .controls {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .controls button {
+        padding: 6px 10px;
+        font-size: 12px;
+        margin: 0;
+        width: auto;
+    }
+
+    /* タブボタンのサイズ調整 */
     .tab-buttons {
-        margin-bottom: 10px;
+        padding: 2px;
     }
 
     .tab-button {
         padding: 8px 5px;
         font-size: 12px;
     }
-
-    .controls {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .controls button {
-        margin-top: 10px;
-        width: 100%;
-    }
-
-    .legend {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .legend-item {
-        margin: 5px 0;
-    }
-
-    input, select {
-        font-size: 14px;
-        padding: 8px;
-    }
-
-    .member-row {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .member-name {
-        margin-bottom: 5px;
-        text-align: center;
-    }
-
-    .delete-btn {
-        margin-left: 0;
-        width: 100%;
-    }
-
-    .notice {
-        font-size: 12px;
-        padding: 10px;
-    }
 }
 
-/* より小さな画面（320px以下）用の追加調整 */
-@media (max-width: 320px) {
+/* より小さな画面用の追加調整 */
+@media (max-width: 375px) {
     table {
         font-size: 10px;
     }
 
+    table tr td:first-child {
+        width: 40px;
+        min-width: 40px;
+    }
+
     th, td {
-        padding: 4px 2px;
+        padding: 4px 1px;
     }
 
     .status-icon {
-        font-size: 16px;
+        font-size: 14px;
     }
 }
