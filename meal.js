@@ -1,4 +1,4 @@
-// アプリケーションの状態と機能を管理するクラス
+// 夕飯管理アプリケーションのメインクラス
 class DinnerPlannerApp {
     constructor() {
         // アプリの状態を初期化
@@ -6,68 +6,26 @@ class DinnerPlannerApp {
         this.dinnerData = {};
         this.currentWeekStart = null;
         this.syncKey = null;
+        
+        // Firebase関連のプロパティ
+        this.firebase = null;
         this.database = null;
         this.syncRef = null;
 
-        // イベントリスナーの初期化
-        this.initializeEventListeners();
+        // 初期化メソッドを呼び出し
+        this.initializeApp();
     }
 
-    // アプリケーションの初期化メソッド
-    init() {
-        // ローカルストレージからデータを読み込む
-        this.loadLocalData();
-
-        // 現在の週の開始日を設定
-        this.setCurrentWeek();
-
-        // Firebaseを初期化
-        this.initFirebase();
-
-        // UIを更新
-        this.updateMembersList();
-        this.updateDinnerTable();
-        this.updateSyncKeyInfo();
-    }
-
-    // イベントリスナーを設定
-    initializeEventListeners() {
-        // タブ切り替えイベント
+    // アプリケーション全体の初期化
+    initializeApp() {
+        // DOMContentLoadedイベントを待つ
         document.addEventListener('DOMContentLoaded', () => {
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    // すべてのタブとコンテンツからアクティブクラスを削除
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    tabContents.forEach(content => content.classList.remove('active'));
-
-                    // クリックされたタブとコンテンツにアクティブクラスを追加
-                    button.classList.add('active');
-                    const tabId = button.dataset.tab;
-                    document.getElementById(tabId).classList.add('active');
-                });
-            });
-
-            // メンバー追加ボタンのイベント
-            document.getElementById('add-member-btn').addEventListener('click', () => this.addMember());
-            document.getElementById('new-member').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.addMember();
-            });
-
-            // 週移動ボタンのイベント
-            document.getElementById('prev-week').addEventListener('click', () => this.moveWeek(-1));
-            document.getElementById('next-week').addEventListener('click', () => this.moveWeek(1));
-
-            // 同期キー設定イベント
-            document.getElementById('set-sync-key').addEventListener('click', () => this.setSyncKey());
-            document.getElementById('sync-key').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.setSyncKey();
-            });
-
-            // アプリケーションを初期化
-            this.init();
+            this.loadLocalData();
+            this.setCurrentWeek();
+            this.initializeEventListeners();
+            this.initializeTabs();
+            this.initializeFirebase();
+            this.updateUI();
         });
     }
 
@@ -91,152 +49,75 @@ class DinnerPlannerApp {
         }
     }
 
-    // Firebaseを初期化
-    initFirebase() {
-        // Firebaseの設定
-        const firebaseConfig = {
-            apiKey: "AIzaSyAZVrNpZZ0tcKdCk6ICTyysK2v2T9_gOY4",
-            authDomain: "mealshift-32f84.firebaseapp.com",
-            databaseURL: "https://mealshift-32f84-default-rtdb.firebaseio.com",
-            projectId: "mealshift-32f84",
-            storageBucket: "mealshift-32f84.firebasestorage.app",
-            messagingSenderId: "378628974920",
-            appId: "1:378628974920:web:f2872d86eaff8d1a2c2b7d"
-        };
+    // タブ初期化
+    initializeTabs() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
 
-        // Firebase初期化
-        this.firebase = firebase.initializeApp(firebaseConfig);
-        this.database = this.firebase.database();
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // すべてのタブからアクティブクラスを削除
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
 
-        // 同期キーが設定されている場合、データ同期を開始
-        if (this.syncKey) {
-            this.startSync();
-        }
-    }
-
-    // データ同期を開始
-    startSync() {
-    if (!this.syncKey) {
-        console.error('同期キーが設定されていません');
-        return;
-    }
-
-    // 安全なキーに変換
-    const safeKey = this.syncKey.replace(/[.#$/[\]]/g, '_');
-    console.log(`同期キー（サニタイズ後）: ${safeKey}`);
-
-    try {
-        // Firebaseリファレンスの作成
-        this.syncRef = this.database.ref('dinnerData/' + safeKey);
-
-        // 接続状態の監視
-        const connectedRef = this.database.ref('.info/connected');
-        connectedRef.on('value', (snapshot) => {
-            if (snapshot.val() === true) {
-                console.log('🟢 Firebase接続が確立されました');
-            } else {
-                console.warn('🔴 Firebase接続が失われました');
-            }
-        });
-
-        // データ読み取りの詳細ログ
-        this.syncRef.once('value')
-            .then((snapshot) => {
-                console.log('🔍 初回データ読み取り:');
-                const data = snapshot.val();
-                console.log('データ内容:', data);
-            })
-            .catch((error) => {
-                console.error('🚨 データ読み取りエラー:', error);
+                // クリックされたタブをアクティブに
+                button.classList.add('active');
+                const tabId = button.dataset.tab;
+                document.getElementById(tabId).classList.add('active');
             });
+        });
+    }
 
-        // リアルタイムリスナー
-        this.syncRef.on('value', (snapshot) => {
-            console.log('🔄 データ同期イベント');
-            const data = snapshot.val();
-            
-            if (data) {
-                console.log('✅ 同期データ受信:', data);
-
-                // データ更新処理
-                if (data.members) {
-                    console.log('👥 メンバーデータ:', data.members);
-                    this.members = data.members;
-                }
-
-                if (data.dinnerData) {
-                    console.log('🍽 夕飯データ:', data.dinnerData);
-                    this.dinnerData = data.dinnerData;
-                }
-
-                // ローカル更新
-                this.saveLocalData();
-                this.updateMembersList();
-                this.updateDinnerTable();
-
-                // UI更新
-                const statusElement = document.getElementById('sync-status');
-                if (statusElement) {
-                    statusElement.textContent = `同期状態: 同期完了 (${new Date().toLocaleTimeString()})`;
-                    statusElement.style.backgroundColor = '#edf7ee';
-                    statusElement.style.color = '#2d6a4f';
-                }
-            } else {
-                console.warn('⚠️ 同期データが空です');
-            }
-        }, (error) => {
-            console.error('🚨 同期エラー:', error);
-            
-            // エラーUI
-            const statusElement = document.getElementById('sync-status');
-            if (statusElement) {
-                statusElement.textContent = `同期エラー: ${error.message}`;
-                statusElement.style.backgroundColor = '#ffebee';
-                statusElement.style.color = '#d32f2f';
-            }
+    // イベントリスナーを設定
+    initializeEventListeners() {
+        // メンバー追加
+        document.getElementById('add-member-btn').addEventListener('click', () => this.addMember());
+        document.getElementById('new-member').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.addMember();
         });
 
-        // 初回データアップロード
-        this.uploadData();
+        // 週移動
+        document.getElementById('prev-week').addEventListener('click', () => this.moveWeek(-1));
+        document.getElementById('next-week').addEventListener('click', () => this.moveWeek(1));
 
-    } catch (error) {
-        console.error('🚨 同期プロセス全体のエラー:', error);
-        
-        // エラーUI
-        const statusElement = document.getElementById('sync-status');
-        if (statusElement) {
-            statusElement.textContent = `同期設定エラー: ${error.message}`;
-            statusElement.style.backgroundColor = '#ffebee';
-            statusElement.style.color = '#d32f2f';
+        // 同期キー設定
+        document.getElementById('set-sync-key').addEventListener('click', () => this.setSyncKey());
+        document.getElementById('sync-key').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.setSyncKey();
+        });
+    }
+
+    // Firebase初期化
+    initializeFirebase() {
+        try {
+            // Firebase設定
+            const firebaseConfig = {
+                apiKey: "AIzaSyAZVrNpZZ0tcKdCk6ICTyysK2v2T9_gOY4",
+                authDomain: "mealshift-32f84.firebaseapp.com",
+                databaseURL: "https://mealshift-32f84-default-rtdb.firebaseio.com",
+                projectId: "mealshift-32f84",
+                storageBucket: "mealshift-32f84.firebasestorage.app",
+                messagingSenderId: "378628974920",
+                appId: "1:378628974920:web:f2872d86eaff8d1a2c2b7d"
+            };
+
+            // Firebase初期化
+            this.firebase = firebase.initializeApp(firebaseConfig);
+            this.database = firebase.database();
+
+            console.log('Firebase初期化成功');
+
+            // 同期キーがある場合は同期開始
+            if (this.syncKey) {
+                this.startSync();
+            }
+        } catch (error) {
+            console.error('Firebase初期化エラー:', error);
+            this.updateSyncStatus('初期化エラー', false);
         }
     }
-}
 
-// データアップロード方法の改善
-uploadData() {
-    if (!this.syncRef) {
-        console.warn('同期参照が設定されていません');
-        return;
-    }
-
-    const dataToSync = {
-        members: this.members,
-        dinnerData: this.dinnerData,
-        lastUpdate: new Date().toISOString()
-    };
-
-    console.log('📤 データアップロード:', dataToSync);
-
-    this.syncRef.set(dataToSync)
-        .then(() => {
-            console.log('✅ データ正常にアップロードされました');
-        })
-        .catch((error) => {
-            console.error('🚨 データアップロードエラー:', error);
-        });
-}
-
-    // 同期キーを設定
+    // 同期キー設定
     setSyncKey() {
         const keyInput = document.getElementById('sync-key');
         const key = keyInput.value.trim();
@@ -255,27 +136,120 @@ uploadData() {
         this.saveLocalData();
         this.updateSyncKeyInfo();
 
-        // 新しい同期を開始
-        this.startSync();
+        // Firebase初期化がまだなら初期化
+        if (!this.database) {
+            this.initializeFirebase();
+        } else {
+            // 新しい同期を開始
+            this.startSync();
+        }
 
         // 入力をクリア
         keyInput.value = '';
     }
 
-    // 現在の週の開始日を設定
+    // データ同期開始
+    startSync() {
+        if (!this.syncKey || !this.database) {
+            console.warn('同期の前提条件が満たされていません');
+            return;
+        }
+
+        // 安全なキーに変換
+        const safeKey = this.sanitizeSyncKey(this.syncKey);
+        
+        try {
+            // Firebase参照作成
+            this.syncRef = this.database.ref('dinnerData/' + safeKey);
+
+            // データ変更リスナー
+            this.syncRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                
+                if (data) {
+                    // データ更新
+                    if (data.members) this.members = data.members;
+                    if (data.dinnerData) this.dinnerData = data.dinnerData;
+
+                    // ローカルデータ保存とUI更新
+                    this.saveLocalData();
+                    this.updateUI();
+                    this.updateSyncStatus('同期完了', true);
+                } else {
+                    console.log('同期データが空です');
+                }
+            }, (error) => {
+                console.error('同期エラー:', error);
+                this.updateSyncStatus('同期エラー', false);
+            });
+
+            // 初回データアップロード
+            this.uploadData();
+        } catch (error) {
+            console.error('同期プロセスエラー:', error);
+            this.updateSyncStatus('同期エラー', false);
+        }
+    }
+
+    // データアップロード
+    uploadData() {
+        if (!this.syncRef) return;
+
+        const dataToSync = {
+            members: this.members,
+            dinnerData: this.dinnerData,
+            lastUpdate: new Date().toISOString()
+        };
+
+        this.syncRef.set(dataToSync)
+            .then(() => {
+                console.log('データ同期成功');
+                this.updateSyncStatus('同期完了', true);
+            })
+            .catch((error) => {
+                console.error('データアップロードエラー:', error);
+                this.updateSyncStatus('アップロードエラー', false);
+            });
+    }
+
+    // 同期ステータス更新
+    updateSyncStatus(message, isSuccess) {
+        const statusElement = document.getElementById('sync-status');
+        if (statusElement) {
+            statusElement.textContent = `同期状態: ${message} (${new Date().toLocaleTimeString()})`;
+            statusElement.style.backgroundColor = isSuccess ? '#edf7ee' : '#ffebee';
+            statusElement.style.color = isSuccess ? '#2d6a4f' : '#d32f2f';
+        }
+    }
+
+    // 同期キーをサニタイズ
+    sanitizeSyncKey(key) {
+        return key.replace(/[^a-zA-Z0-9_-]/g, '_')
+                  .toLowerCase()
+                  .substring(0, 20);
+    }
+
+    // 現在の週を設定
     setCurrentWeek(date = new Date()) {
-        const day = date.getDay(); // 0=日曜日
+        const day = date.getDay();
         const diff = date.getDate() - day;
         this.currentWeekStart = new Date(date.setDate(diff));
         this.currentWeekStart.setHours(0, 0, 0, 0);
     }
 
-    // 週を移動
+    // 週移動
     moveWeek(direction) {
         const date = new Date(this.currentWeekStart);
         date.setDate(date.getDate() + (7 * direction));
         this.setCurrentWeek(date);
         this.updateDinnerTable();
+    }
+
+    // UI全体を更新
+    updateUI() {
+        this.updateMembersList();
+        this.updateDinnerTable();
+        this.updateSyncKeyInfo();
     }
 
     // メンバーリストを更新
@@ -307,7 +281,7 @@ uploadData() {
         });
     }
 
-    // メンバーを追加
+    // メンバー追加
     addMember() {
         const input = document.getElementById('new-member');
         const name = input.value.trim();
@@ -332,8 +306,7 @@ uploadData() {
 
         this.members.push(newMember);
         this.saveLocalData();
-        this.updateMembersList();
-        this.updateDinnerTable();
+        this.updateUI();
 
         // データを同期
         if (this.syncRef) {
@@ -344,7 +317,7 @@ uploadData() {
         input.value = '';
     }
 
-    // メンバーを削除
+    // メンバー削除
     deleteMember(memberId) {
         const confirmed = confirm('このメンバーを削除しますか？関連するすべての予定も削除されます。');
         if (!confirmed) return;
@@ -362,8 +335,7 @@ uploadData() {
 
         this.dinnerData = newDinnerData;
         this.saveLocalData();
-        this.updateMembersList();
-        this.updateDinnerTable();
+        this.updateUI();
 
         // データを同期
         if (this.syncRef) {
@@ -457,26 +429,24 @@ uploadData() {
 
     // ステータスを切り替え
     toggleStatus(cell, statusKey) {
+        // ステータスの種類
+        const statuses = ['maru', 'batsu', 'hatena'];
+
+        // 現在のステータスを取得
+        const currentStatus = this.dinnerData[statusKey];
+
+        // 次のステータスを決定
+        const currentIndex = currentStatus ? statuses.indexOf(currentStatus) : -1;
+        const nextStatusIndex = (currentIndex + 1) % statuses.length;
+        const nextStatus = statuses[nextStatusIndex];
+
         // 現在のステータスクラスを削除
         cell.classList.remove('status-maru', 'status-batsu', 'status-hatena');
 
         // アニメーションのためにクラスをリセット
         cell.classList.remove('animate');
 
-        // 現在のステータスを取得
-        const currentStatus = this.dinnerData[statusKey];
-        let nextStatus = null;
-
-        // ステータスの循環
-        if (currentStatus === undefined) {
-            nextStatus = 'maru';
-        } else if (currentStatus === 'maru') {
-            nextStatus = 'batsu';
-        } else if (currentStatus === 'batsu') {
-            nextStatus = 'hatena';
-        }
-
-        // 次のステータスを設定
+        // 次のステータスがある場合はクラスを追加
         if (nextStatus) {
             cell.classList.add(`status-${nextStatus}`);
             this.dinnerData[statusKey] = nextStatus;
