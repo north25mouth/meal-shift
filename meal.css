@@ -400,3 +400,124 @@ label {
         font-size: 13px;
     }
 }
+
+/* スマートフォン向けのレスポンシブデザイン調整 */
+@media (max-width: 600px) {
+    .container {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    body {
+        padding: 5px;
+        background-image: none;
+        background-color: #f7f9fc;
+    }
+
+    header {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 18px;
+    }
+
+    header p {
+        font-size: 14px;
+    }
+
+    .content {
+        padding: 10px;
+    }
+
+    .section {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+
+    th, td {
+        padding: 6px 3px;
+    }
+
+    .status-cell {
+        height: 40px;
+    }
+
+    .status-icon {
+        font-size: 18px;
+    }
+
+    .tab-buttons {
+        margin-bottom: 10px;
+    }
+
+    .tab-button {
+        padding: 8px 5px;
+        font-size: 12px;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .controls button {
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    .legend {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .legend-item {
+        margin: 5px 0;
+    }
+
+    input, select {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .member-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .member-name {
+        margin-bottom: 5px;
+        text-align: center;
+    }
+
+    .delete-btn {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .notice {
+        font-size: 12px;
+        padding: 10px;
+    }
+}
+
+/* より小さな画面（320px以下）用の追加調整 */
+@media (max-width: 320px) {
+    table {
+        font-size: 10px;
+    }
+
+    th, td {
+        padding: 4px 2px;
+    }
+
+    .status-icon {
+        font-size: 16px;
+    }
+}
