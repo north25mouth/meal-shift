@@ -8,121 +8,132 @@
     <link rel="stylesheet" href="meal.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>夕飯管理アプリ</h1>
-            <p>タップだけで簡単入力！</p>
-        </header>
-        
-        <div class="content">
-            <div class="tab-buttons">
-                <button class="tab-button active" data-tab="dinner-tab">夕飯カレンダー</button>
-                <button class="tab-button" data-tab="members-tab">家族メンバー</button>
-                <button class="tab-button" data-tab="sync-tab">データ共有</button>
-            </div>
-            
-            <div id="dinner-tab" class="tab-content active">
-                <div class="section">
-                    <div class="controls">
-                        <h2>みんなの夕飯予定</h2>
-                        <div>
-                            <button id="prev-week">◀ 前の週</button>
-                            <button id="next-week">次の週 ▶</button>
-                        </div>
-                    </div>
-                    
-                    <div class="legend">
-                        <div class="legend-item">
-                            <div class="legend-icon">🏠</div>
-                            <span>家で食べる</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-icon">❌</div>
-                            <span>いない</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-icon">❓</div>
-                            <span>未定</span>
-                        </div>
-                    </div>
-                    
-                    <div id="dinner-table-container">
-                        <!-- テーブルが動的に生成されます -->
-                    </div>
-                    
-                    <div class="notice">
-                        <p><strong>使い方:</strong> 各セルをタップ・クリックすると「家で食べる🍽️」→「いない❌」→「未定❓」→「未設定」の順に切り替わります</p>
+<div class="container">
+    <header>
+        <h1>夕飯管理アプリ</h1>
+        <p>タップだけで簡単入力！</p>
+    </header>
+
+    <div class="content">
+        <div class="tab-buttons">
+            <button class="tab-button active" data-tab="dinner-tab">夕飯カレンダー</button>
+            <button class="tab-button" data-tab="members-tab">家族メンバー</button>
+            <button class="tab-button" data-tab="sync-tab">データ共有</button>
+        </div>
+
+        <div id="dinner-tab" class="tab-content active">
+            <div class="section">
+                <div class="controls">
+                    <h2>みんなの夕飯予定</h2>
+                    <div>
+                        <button id="prev-week">◀ 前の週</button>
+                        <button id="next-week">次の週 ▶</button>
                     </div>
                 </div>
-            </div>
-            
-            <div id="members-tab" class="tab-content">
-                <div class="section">
-                    <h2>家族メンバー管理</h2>
-                    
-                    <div class="form-group">
-                        <label for="new-member">新しいメンバーを追加</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="new-member" placeholder="名前を入力してください">
-                            <button id="add-member-btn" style="width: auto;">追加</button>
-                        </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-icon">🏠</div>
+                        <span>家で食べる</span>
                     </div>
-                    
-                    <div id="members-list">
-                        <!-- メンバーリストが動的に生成されます -->
+                    <div class="legend-item">
+                        <div class="legend-icon">❌</div>
+                        <span>いない</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon">❓</div>
+                        <span>未定</span>
                     </div>
                 </div>
+
+                <div id="dinner-table-container">
+                    <!-- テーブルが動的に生成されます -->
+                </div>
+
+                <div class="notice">
+                    <p><strong>使い方:</strong> 各セルをタップ・クリックすると「家で食べる🍽️」→「いない❌」→「未定❓」→「未設定」の順に切り替わります</p>
+                </div>
             </div>
-            
-            <div id="sync-tab" class="tab-content">
-                <div class="section">
-                    <h2>データを端末間で共有</h2>
-                    
-                    <p style="margin-bottom: 15px;">他のスマホやパソコンとデータを共有するための設定です。家族全員が同じ「合言葉」を使ってください。</p>
-                    
-                    <div class="form-group">
-                        <label for="sync-key">共有の合言葉（簡単な文字や数字）</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="sync-key" placeholder="例: うちの夕飯2025">
-                            <button id="set-sync-key" style="width: auto;">設定する</button>
-                        </div>
+        </div>
+
+        <div id="members-tab" class="tab-content">
+            <div class="section">
+                <h2>家族メンバー管理</h2>
+
+                <div class="form-group">
+                    <label for="new-member">新しいメンバーを追加</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="new-member" placeholder="名前を入力してください">
+                        <button id="add-member-btn" style="width: auto;">追加</button>
                     </div>
-                    
-                    <div id="sync-key-info">
-                        <p>現在の合言葉: <span id="sync-key-display">未設定</span></p>
-                        <p><span id="sync-status">同期状態: 未設定</span></p>
+                </div>
+
+                <div id="members-list">
+                    <!-- メンバーリストが動的に生成されます -->
+                </div>
+            </div>
+        </div>
+
+        <div id="sync-tab" class="tab-content">
+            <div class="section">
+                <h2>データを端末間で共有</h2>
+
+                <p style="margin-bottom: 15px;">他のスマホやパソコンとデータを共有するための設定です。家族全員が同じ「合言葉」を使ってください。</p>
+
+                <div class="form-group">
+                    <label for="sync-key">共有の合言葉（簡単な文字や数字）</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="sync-key" placeholder="例: うちの夕飯2025">
+                        <button id="set-sync-key" style="width: auto;">設定する</button>
                     </div>
-                    
-                    <div class="notice">
-                        <p><strong>使い方:</strong> すべての端末で同じ合言葉を設定するだけで自動的にデータが共有されます。特別な登録は必要ありません。</p>
-                    </div>
+                </div>
+
+                <div id="sync-key-info">
+                    <p>現在の合言葉: <span id="sync-key-display">未設定</span></p>
+                    <p><span id="sync-status">同期状態: 未設定</span></p>
+                </div>
+
+                <div class="notice">
+                    <p><strong>使い方:</strong> すべての端末で同じ合言葉を設定するだけで自動的にデータが共有されます。特別な登録は必要ありません。</p>
                 </div>
             </div>
         </div>
     </div>
-    
-     <!-- Firebase SDKs (旧バージョンの互換モード) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
-    <!-- Firebase Configuration -->
-    <script>
-        // Firebase設定
-        var firebaseConfig = {
-            apiKey: "AIzaSyAZVrNpZZ0tcKdCk6ICTyysK2v2T9_gOY4",
-            authDomain: "mealshift-32f84.firebaseapp.com",
-            databaseURL: "https://mealshift-32f84-default-rtdb.firebaseio.com",
-            projectId: "mealshift-32f84",
-            storageBucket: "mealshift-32f84.firebasestorage.app",
-            messagingSenderId: "378628974920",
-            appId: "1:378628974920:web:f2872d86eaff8d1a2c2b7d"
-        };
+</div>
+<script>
+    // デバッグ用のスクリプト
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error('Global error handler:');
+        console.error('Message:', message);
+        console.error('Source:', source);
+        console.error('Line:', lineno);
+        console.error('Column:', colno);
+        console.error('Error object:', error);
+        return false;
+    };
+</script>
+<!-- Firebase SDKs (旧バージョンの互換モード) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-        // Firebase初期化
-        firebase.initializeApp(firebaseConfig);
-    </script>
-    
-    <!-- アプリスクリプト -->
-    <script src="meal.js"></script>
+<!-- Firebase Configuration -->
+<script>
+    // Firebase設定
+    var firebaseConfig = {
+        apiKey: "AIzaSyAZVrNpZZ0tcKdCk6ICTyysK2v2T9_gOY4",
+        authDomain: "mealshift-32f84.firebaseapp.com",
+        databaseURL: "https://mealshift-32f84-default-rtdb.firebaseio.com",
+        projectId: "mealshift-32f84",
+        storageBucket: "mealshift-32f84.firebasestorage.app",
+        messagingSenderId: "378628974920",
+        appId: "1:378628974920:web:f2872d86eaff8d1a2c2b7d"
+    };
+
+    // Firebase初期化
+    firebase.initializeApp(firebaseConfig);
+</script>
+
+<!-- アプリスクリプト -->
+<script src="meal.js"></script>
 </body>
 </html>
