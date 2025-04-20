@@ -102,8 +102,33 @@
     </div>
 
     <!-- Firebase SDKs -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    
+    <!-- Firebase Configuration Script -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZVrNpZZ0tcKdCk6ICTyysK2v2T9_gOY4",
+            authDomain: "mealshift-32f84.firebaseapp.com",
+            databaseURL: "https://mealshift-32f84-default-rtdb.firebaseio.com",
+            projectId: "mealshift-32f84",
+            storageBucket: "mealshift-32f84.firebasestorage.app",
+            messagingSenderId: "378628974920",
+            appId: "1:378628974920:web:f2872d86eaff8d1a2c2b7d",
+            measurementId: "G-31RL7V07PC"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+    </script>
+
+    <!-- Your existing app script -->
     <script src="meal.js"></script>
 </body>
 </html>
