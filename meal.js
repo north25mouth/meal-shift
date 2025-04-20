@@ -5,7 +5,7 @@ class DinnerPlannerApp {
         this.dinnerData = {};
         this.currentWeekStart = null;
         this.syncKey = null;
-        
+
         // Firebase関連のプロパティ
         this.database = null;
         this.syncRef = null;
@@ -22,10 +22,10 @@ class DinnerPlannerApp {
             this.setCurrentWeek();
             this.initializeEventListeners();
             this.initializeTabs();
-            
+
             // Firebaseの初期化は一度だけ
             this.initializeFirebase();
-            
+
             this.updateUI();
         });
     }
@@ -34,13 +34,13 @@ class DinnerPlannerApp {
     initializeTabs() {
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
-        
+
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
                 // アクティブなタブをリセット
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 tabContents.forEach(content => content.classList.remove('active'));
-                
+
                 // クリックされたタブをアクティブに
                 button.classList.add('active');
                 const tabId = button.dataset.tab;
@@ -57,7 +57,7 @@ class DinnerPlannerApp {
         try {
             // デフォルトアプリを使用（すでに存在する場合）
             const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
-            
+
             // データベースを取得
             this.database = firebase.database();
 
@@ -80,7 +80,7 @@ class DinnerPlannerApp {
         // 同期キー設定
         const setSyncKeyBtn = document.getElementById('set-sync-key');
         const syncKeyInput = document.getElementById('sync-key');
-        
+
         setSyncKeyBtn.addEventListener('click', () => this.setSyncKey());
         syncKeyInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.setSyncKey();
@@ -89,7 +89,7 @@ class DinnerPlannerApp {
         // メンバー追加
         const addMemberBtn = document.getElementById('add-member-btn');
         const newMemberInput = document.getElementById('new-member');
-        
+
         addMemberBtn.addEventListener('click', () => this.addMember());
         newMemberInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.addMember();
@@ -105,7 +105,7 @@ class DinnerPlannerApp {
         const savedMembers = localStorage.getItem('tapDinnerMembers');
         const savedDinnerData = localStorage.getItem('tapDinnerData');
         const savedSyncKey = localStorage.getItem('tapDinnerSyncKey');
-        
+
         if (savedMembers) this.members = JSON.parse(savedMembers);
         if (savedDinnerData) this.dinnerData = JSON.parse(savedDinnerData);
         if (savedSyncKey) this.syncKey = savedSyncKey;
@@ -160,7 +160,7 @@ class DinnerPlannerApp {
 
         // 安全なキーに変換
         const safeKey = this.sanitizeSyncKey(this.syncKey);
-        
+
         try {
             // Firebase参照作成
             this.syncRef = this.database.ref('dinnerData/' + safeKey);
@@ -168,7 +168,7 @@ class DinnerPlannerApp {
             // データ変更リスナー
             this.syncRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                
+
                 if (data) {
                     // データ更新
                     if (data.members) this.members = data.members;
@@ -431,68 +431,68 @@ class DinnerPlannerApp {
         }, 10);
 
         // データを保存
-    this.saveLocalData();
+        this.saveLocalData();
 
-    // データを同期
-    if (this.syncRef) {
-        this.uploadData();
+        // データを同期
+        if (this.syncRef) {
+            this.uploadData();
+        }
     }
-}
 
 // 同期キー情報を更新
-updateSyncKeyInfo() {
-    const display = document.getElementById('sync-key-display');
-    const status = document.getElementById('sync-status');
+    updateSyncKeyInfo() {
+        const display = document.getElementById('sync-key-display');
+        const status = document.getElementById('sync-status');
 
-    if (this.syncKey) {
-        display.textContent = this.syncKey;
-        status.textContent = '同期状態: 設定完了';
-    } else {
-        display.textContent = '未設定';
-        status.textContent = '同期状態: 未設定';
+        if (this.syncKey) {
+            display.textContent = this.syncKey;
+            status.textContent = '同期状態: 設定完了';
+        } else {
+            display.textContent = '未設定';
+            status.textContent = '同期状態: 未設定';
+        }
     }
-}
 
 // 現在の週を設定
-setCurrentWeek(date = new Date()) {
-    const day = date.getDay();
-    const diff = date.getDate() - day;
-    this.currentWeekStart = new Date(date.setDate(diff));
-    this.currentWeekStart.setHours(0, 0, 0, 0);
-}
+    setCurrentWeek(date = new Date()) {
+        const day = date.getDay();
+        const diff = date.getDate() - day;
+        this.currentWeekStart = new Date(date.setDate(diff));
+        this.currentWeekStart.setHours(0, 0, 0, 0);
+    }
 
 // 週移動
-moveWeek(direction) {
-    const date = new Date(this.currentWeekStart);
-    date.setDate(date.getDate() + (7 * direction));
-    this.setCurrentWeek(date);
-    this.updateDinnerTable();
-}
+    moveWeek(direction) {
+        const date = new Date(this.currentWeekStart);
+        date.setDate(date.getDate() + (7 * direction));
+        this.setCurrentWeek(date);
+        this.updateDinnerTable();
+    }
 
 // 同期キーをサニタイズ
-sanitizeSyncKey(key) {
-    return key.replace(/[^a-zA-Z0-9_-]/g, '_')
-              .toLowerCase()
-              .substring(0, 20);
-}
+    sanitizeSyncKey(key) {
+        return key.replace(/[^a-zA-Z0-9_-]/g, '_')
+            .toLowerCase()
+            .substring(0, 20);
+    }
 
 // 同期ステータス更新
-updateSyncStatus(message, isSuccess) {
-    const statusElement = document.getElementById('sync-status');
-    if (statusElement) {
-        statusElement.textContent = `同期状態: ${message} (${new Date().toLocaleTimeString()})`;
-        statusElement.style.backgroundColor = isSuccess ? '#edf7ee' : '#ffebee';
-        statusElement.style.color = isSuccess ? '#2d6a4f' : '#d32f2f';
+    updateSyncStatus(message, isSuccess) {
+        const statusElement = document.getElementById('sync-status');
+        if (statusElement) {
+            statusElement.textContent = `同期状態: ${message} (${new Date().toLocaleTimeString()})`;
+            statusElement.style.backgroundColor = isSuccess ? '#edf7ee' : '#ffebee';
+            statusElement.style.color = isSuccess ? '#2d6a4f' : '#d32f2f';
+        }
     }
-}
 
 // 日付をフォーマット (YYYY-MM-DD)
-formatDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
+    formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
 }
 
 // アプリケーションのインスタンスを作成
