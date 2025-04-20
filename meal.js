@@ -1,13 +1,10 @@
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, onValue, update, remove } from "firebase/database";
-import { firebaseConfig } from './firebase-config.js';
-
 // アプリケーションの状態を管理するオブジェクト
 const app = {
     members: [],
     dinnerData: {},
     currentWeekStart: null,
     syncKey: null,
+    firebase: null,
     database: null,
     syncRef: null,
     
@@ -38,9 +35,23 @@ const app = {
         this.updateSyncKeyInfo();
     },
     
-    // タブ切り替え機能の初期化 (前回と同じ)
+    // タブ切り替え機能の初期化
     initTabs: function() {
-        // ... (前回と同じ)
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // アクティブなタブをリセット
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // クリックされたタブをアクティブに
+                button.classList.add('active');
+                const tabId = button.dataset.tab;
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
     },
     
     // ローカルストレージからデータを読み込む
@@ -73,9 +84,21 @@ const app = {
     
     // Firebase の初期化
     initFirebase: function() {
+        // Firebase の設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZVrNpZZ0tcKdCk6ICTyysK2v2T9_gOY4",
+            authDomain: "mealshift-32f84.firebaseapp.com",
+            databaseURL: "https://mealshift-32f84-default-rtdb.firebaseio.com",
+            projectId: "mealshift-32f84",
+            storageBucket: "mealshift-32f84.firebasestorage.app",
+            messagingSenderId: "378628974920",
+            appId: "1:378628974920:web:f2872d86eaff8d1a2c2b7d",
+            measurementId: "G-31RL7V07PC"
+        };
+        
         // Firebase の初期化
-        const firebaseApp = initializeApp(firebaseConfig);
-        this.database = getDatabase(firebaseApp);
+        this.firebase = firebase.initializeApp(firebaseConfig);
+        this.database = this.firebase.database();
         
         // 同期キーが設定されている場合は、データ同期を開始
         if (this.syncKey) {
@@ -91,10 +114,10 @@ const app = {
         const safeKey = this.syncKey.replace(/[.#$/[\]]/g, '_');
         
         // Firebase のリファレンスを設定
-        this.syncRef = ref(this.database, 'dinnerData/' + safeKey);
+        this.syncRef = this.database.ref('dinnerData/' + safeKey);
         
         // データ変更時のリスナーを設定
-        onValue(this.syncRef, (snapshot) => {
+        this.syncRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 // Firebaseからのデータで上書き
@@ -121,16 +144,25 @@ const app = {
     uploadData: function() {
         if (!this.syncRef) return;
         
-        set(this.syncRef, {
+        this.syncRef.set({
             members: this.members,
             dinnerData: this.dinnerData,
             lastUpdate: new Date().toISOString()
         });
     },
     
-    // 同期キー情報を更新 (前回と同じ)
+    // 同期キー情報を更新
     updateSyncKeyInfo: function() {
-        // ... (前回と同じ)
+        const display = document.getElementById('sync-key-display');
+        const status = document.getElementById('sync-status');
+        
+        if (this.syncKey) {
+            display.textContent = this.syncKey;
+            status.textContent = '同期状態: 設定完了';
+        } else {
+            display.textContent = '未設定';
+            status.textContent = '同期状態: 未設定';
+        }
     },
     
     // 同期キーを設定
@@ -142,7 +174,7 @@ const app = {
         
         // 以前の同期を停止
         if (this.syncRef) {
-            // onValueのリスナーを解除する
+            this.syncRef.off();
         }
         
         this.syncKey = key.trim();
