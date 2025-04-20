@@ -1,4 +1,3 @@
-// 夕飯管理アプリケーションのメインクラス
 class DinnerPlannerApp {
     constructor() {
         // アプリの状態を初期化
@@ -8,7 +7,7 @@ class DinnerPlannerApp {
         this.syncKey = null;
         
         // Firebase関連のプロパティ
-        this.firebase = null;
+        this.firebaseApp = null;
         this.database = null;
         this.syncRef = null;
 
@@ -24,71 +23,19 @@ class DinnerPlannerApp {
             this.setCurrentWeek();
             this.initializeEventListeners();
             this.initializeTabs();
-            this.initializeFirebase();
+            
+            // Firebaseの初期化は1回のみ
+            this.ensureFirebaseInitialized();
+            
             this.updateUI();
         });
     }
 
-    // ローカルストレージからデータを読み込む
-    loadLocalData() {
-        const savedMembers = localStorage.getItem('tapDinnerMembers');
-        const savedDinnerData = localStorage.getItem('tapDinnerData');
-        const savedSyncKey = localStorage.getItem('tapDinnerSyncKey');
+    // Firebaseの初期化を1回のみ確実に行う
+    ensureFirebaseInitialized() {
+        // すでに初期化されている場合は何もしない
+        if (this.firebaseApp) return;
 
-        if (savedMembers) this.members = JSON.parse(savedMembers);
-        if (savedDinnerData) this.dinnerData = JSON.parse(savedDinnerData);
-        if (savedSyncKey) this.syncKey = savedSyncKey;
-    }
-
-    // ローカルデータを保存
-    saveLocalData() {
-        localStorage.setItem('tapDinnerMembers', JSON.stringify(this.members));
-        localStorage.setItem('tapDinnerData', JSON.stringify(this.dinnerData));
-        if (this.syncKey) {
-            localStorage.setItem('tapDinnerSyncKey', this.syncKey);
-        }
-    }
-
-    // タブ初期化
-    initializeTabs() {
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // すべてのタブからアクティブクラスを削除
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-
-                // クリックされたタブをアクティブに
-                button.classList.add('active');
-                const tabId = button.dataset.tab;
-                document.getElementById(tabId).classList.add('active');
-            });
-        });
-    }
-
-    // イベントリスナーを設定
-    initializeEventListeners() {
-        // メンバー追加
-        document.getElementById('add-member-btn').addEventListener('click', () => this.addMember());
-        document.getElementById('new-member').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.addMember();
-        });
-
-        // 週移動
-        document.getElementById('prev-week').addEventListener('click', () => this.moveWeek(-1));
-        document.getElementById('next-week').addEventListener('click', () => this.moveWeek(1));
-
-        // 同期キー設定
-        document.getElementById('set-sync-key').addEventListener('click', () => this.setSyncKey());
-        document.getElementById('sync-key').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.setSyncKey();
-        });
-    }
-
-    // Firebase初期化
-    initializeFirebase() {
         try {
             // Firebase設定
             const firebaseConfig = {
@@ -101,8 +48,15 @@ class DinnerPlannerApp {
                 appId: "1:378628974920:web:f2872d86eaff8d1a2c2b7d"
             };
 
-            // Firebase初期化
-            this.firebase = firebase.initializeApp(firebaseConfig);
+            // すでに初期化されたアプリがある場合は、それを使用
+            try {
+                this.firebaseApp = firebase.app();
+            } catch (error) {
+                // まだ初期化されていない場合は新規作成
+                this.firebaseApp = firebase.initializeApp(firebaseConfig);
+            }
+
+            // データベースを取得
             this.database = firebase.database();
 
             console.log('Firebase初期化成功');
@@ -136,13 +90,11 @@ class DinnerPlannerApp {
         this.saveLocalData();
         this.updateSyncKeyInfo();
 
-        // Firebase初期化がまだなら初期化
-        if (!this.database) {
-            this.initializeFirebase();
-        } else {
-            // 新しい同期を開始
-            this.startSync();
-        }
+        // Firebaseが初期化されていない場合は初期化
+        this.ensureFirebaseInitialized();
+
+        // 新しい同期を開始
+        this.startSync();
 
         // 入力をクリア
         keyInput.value = '';
@@ -150,8 +102,10 @@ class DinnerPlannerApp {
 
     // データ同期開始
     startSync() {
+        // Firebaseが初期化されていることを確認
         if (!this.syncKey || !this.database) {
             console.warn('同期の前提条件が満たされていません');
+            this.ensureFirebaseInitialized();
             return;
         }
 
@@ -190,6 +144,8 @@ class DinnerPlannerApp {
             this.updateSyncStatus('同期エラー', false);
         }
     }
+// アプリケーションのインスタンスを作成
+const dinnerPlannerApp = new DinnerPlannerApp();
 
     // データアップロード
     uploadData() {
