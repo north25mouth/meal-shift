@@ -1,6 +1,5 @@
-
 // Firebase設定
-export const firebaseConfig = {
+const firebaseConfig = {
     apiKey: "AIzaSyAZVrNpZZ0tcKdCk6ICTyysK2v2T9_gOY4",
     authDomain: "mealshift-32f84.firebaseapp.com",
     databaseURL: "https://mealshift-32f84-default-rtdb.firebaseio.com",
