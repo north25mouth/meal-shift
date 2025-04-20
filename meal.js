@@ -116,49 +116,125 @@ class DinnerPlannerApp {
 
     // データ同期を開始
     startSync() {
-        if (!this.syncKey) return;
+    if (!this.syncKey) {
+        console.error('同期キーが設定されていません');
+        return;
+    }
 
-        // 安全なリファレンスキーに変換
-        const safeKey = this.syncKey.replace(/[.#$/[\]]/g, '_');
+    // 安全なキーに変換
+    const safeKey = this.syncKey.replace(/[.#$/[\]]/g, '_');
+    console.log(`同期キー（サニタイズ後）: ${safeKey}`);
 
-        // Firebaseのリファレンスを設定
+    try {
+        // Firebaseリファレンスの作成
         this.syncRef = this.database.ref('dinnerData/' + safeKey);
 
-        // データ変更時のリスナーを設定
-        this.syncRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                // Firebaseからのデータで上書き
-                if (data.members) this.members = data.members;
-                if (data.dinnerData) this.dinnerData = data.dinnerData;
-
-                // ローカルデータを更新
-                this.saveLocalData();
-
-                // UIを更新
-                this.updateMembersList();
-                this.updateDinnerTable();
-
-                // 同期ステータスを更新
-                document.getElementById('sync-status').textContent = 
-                    `同期状態: 同期完了 (${new Date().toLocaleTimeString()})`;
+        // 接続状態の監視
+        const connectedRef = this.database.ref('.info/connected');
+        connectedRef.on('value', (snapshot) => {
+            if (snapshot.val() === true) {
+                console.log('🟢 Firebase接続が確立されました');
+            } else {
+                console.warn('🔴 Firebase接続が失われました');
             }
         });
 
-        // 初回データをアップロード
-        this.uploadData();
-    }
+        // データ読み取りの詳細ログ
+        this.syncRef.once('value')
+            .then((snapshot) => {
+                console.log('🔍 初回データ読み取り:');
+                const data = snapshot.val();
+                console.log('データ内容:', data);
+            })
+            .catch((error) => {
+                console.error('🚨 データ読み取りエラー:', error);
+            });
 
-    // Firebaseにデータをアップロード
-    uploadData() {
-        if (!this.syncRef) return;
+        // リアルタイムリスナー
+        this.syncRef.on('value', (snapshot) => {
+            console.log('🔄 データ同期イベント');
+            const data = snapshot.val();
+            
+            if (data) {
+                console.log('✅ 同期データ受信:', data);
 
-        this.syncRef.set({
-            members: this.members,
-            dinnerData: this.dinnerData,
-            lastUpdate: new Date().toISOString()
+                // データ更新処理
+                if (data.members) {
+                    console.log('👥 メンバーデータ:', data.members);
+                    this.members = data.members;
+                }
+
+                if (data.dinnerData) {
+                    console.log('🍽 夕飯データ:', data.dinnerData);
+                    this.dinnerData = data.dinnerData;
+                }
+
+                // ローカル更新
+                this.saveLocalData();
+                this.updateMembersList();
+                this.updateDinnerTable();
+
+                // UI更新
+                const statusElement = document.getElementById('sync-status');
+                if (statusElement) {
+                    statusElement.textContent = `同期状態: 同期完了 (${new Date().toLocaleTimeString()})`;
+                    statusElement.style.backgroundColor = '#edf7ee';
+                    statusElement.style.color = '#2d6a4f';
+                }
+            } else {
+                console.warn('⚠️ 同期データが空です');
+            }
+        }, (error) => {
+            console.error('🚨 同期エラー:', error);
+            
+            // エラーUI
+            const statusElement = document.getElementById('sync-status');
+            if (statusElement) {
+                statusElement.textContent = `同期エラー: ${error.message}`;
+                statusElement.style.backgroundColor = '#ffebee';
+                statusElement.style.color = '#d32f2f';
+            }
         });
+
+        // 初回データアップロード
+        this.uploadData();
+
+    } catch (error) {
+        console.error('🚨 同期プロセス全体のエラー:', error);
+        
+        // エラーUI
+        const statusElement = document.getElementById('sync-status');
+        if (statusElement) {
+            statusElement.textContent = `同期設定エラー: ${error.message}`;
+            statusElement.style.backgroundColor = '#ffebee';
+            statusElement.style.color = '#d32f2f';
+        }
     }
+}
+
+// データアップロード方法の改善
+uploadData() {
+    if (!this.syncRef) {
+        console.warn('同期参照が設定されていません');
+        return;
+    }
+
+    const dataToSync = {
+        members: this.members,
+        dinnerData: this.dinnerData,
+        lastUpdate: new Date().toISOString()
+    };
+
+    console.log('📤 データアップロード:', dataToSync);
+
+    this.syncRef.set(dataToSync)
+        .then(() => {
+            console.log('✅ データ正常にアップロードされました');
+        })
+        .catch((error) => {
+            console.error('🚨 データアップロードエラー:', error);
+        });
+}
 
     // 同期キーを設定
     setSyncKey() {
